@@ -1,0 +1,8 @@
+multica/
+multica-workspaces/
+opencode-config/
+opencode-data/
+workspace/
+.env
+*.log
+.DS_Store

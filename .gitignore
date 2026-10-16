@@ -1,0 +1,9 @@
+.env
+docker-compose.yml
+workspace/
+multica/
+multica-workspaces/
+opencode-config/
+opencode-data/
+*.log
+.DS_Store

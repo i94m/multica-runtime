@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "local_tkhk": {
+      "type": "local",
+      "command": ["mcp-server-mysql"],
+      "environment": {
+        "MYSQL_HOST": "数据库地址",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "数据库用户名",
+        "MYSQL_PASS": "数据库密码",
+        "MYSQL_DB": "数据库名",
+        "ALLOW_INSERT_OPERATION": "false",
+        "ALLOW_UPDATE_OPERATION": "false",
+        "ALLOW_DELETE_OPERATION": "false"
+      },
+      "enabled": true,
+      "timeout": {
+        "startup": 60000
+      }
+    }
+  }
+}
