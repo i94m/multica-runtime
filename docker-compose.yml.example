@@ -1,6 +1,6 @@
 services:
   multica:
-    image: ${IMAGE_NAME:-ghcr.io/i94m/multica-runtime}:${MULTICA_VERSION:-0.6.2}
+    image: ${IMAGE_NAME:-ghcr.io/i94m/multica-runtime}:${MULTICA_VERSION:-0.6.3}
     working_dir: /workspace
     stdin_open: true
     tty: true
