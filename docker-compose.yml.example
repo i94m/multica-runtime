@@ -1,12 +1,9 @@
 services:
-  runtime:
+  multica:
     image: ${IMAGE_NAME:-ghcr.io/i94m/multica-runtime}:${MULTICA_VERSION:-0.6.2}
-    container_name: multica-opencode-mysql-mcp
     working_dir: /workspace
     stdin_open: true
     tty: true
-    environment:
-      MULTICA_DAEMON_AUTOSTART: "1"
     volumes:
       # Persistent runtime state. Do not commit these folders.
       - ./workspace:/workspace
@@ -20,3 +17,12 @@ services:
       # - ~/.ssh/id_ed25519.pub:/root/.ssh/id_ed25519.pub:ro
       # - ~/.ssh/known_hosts:/root/.ssh/known_hosts:ro
     restart: unless-stopped
+    networks:
+      - multica_net
+
+networks:
+  multica_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: ${MULTICA_DOCKER_SUBNET:-172.31.250.0/24}
