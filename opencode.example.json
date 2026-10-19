@@ -1,7 +1,11 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "local_tkhk": {
+    "playwright": {
+      "type": "remote",
+      "url": "http://playwright:8931/mcp"
+    },
+    "database": {
       "type": "local",
       "command": ["mcp-server-mysql"],
       "environment": {
