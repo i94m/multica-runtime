@@ -11,6 +11,7 @@ services:
       MULTICA_DAEMON_DEVICE_NAME: "Developer's Runtime on Workstation Container"
     volumes:
       # Persistent runtime state. Do not commit these folders.
+      - workspace:/workspace
       - ./playwright-output:/root/playwright-output:ro
       - ./.multica:/root/.multica
       - ./multica-workspaces:/root/multica_workspaces
@@ -33,8 +34,6 @@ services:
       - "--headless"
       - "--browser"
       - "chromium"
-      - "--executable-path"
-      - "/host-chromium/chrome-linux64/chrome"
       - "--no-sandbox"
       - "--allow-unrestricted-file-access"
       - "--output-dir"
@@ -51,8 +50,9 @@ services:
       NODE_ENV: production
       PLAYWRIGHT_MCP_OUTPUT_DIR: /root/playwright-output
     volumes:
-      # Reuse host-installed Playwright Chromium so the MCP image does not need msedge.
-      - /root/.cache/ms-playwright/chromium-1208:/host-chromium:ro
       # Shared output directory; container path must match --output-dir.
       - ./playwright-output:/root/playwright-output
     restart: unless-stopped
+
+volumes:
+  workspace:

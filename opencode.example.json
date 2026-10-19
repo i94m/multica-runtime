@@ -1,26 +1,31 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "playwright": {
-      "type": "remote",
-      "url": "http://playwright:8931/mcp"
-    },
-    "database": {
-      "type": "local",
-      "command": ["mcp-server-mysql"],
-      "environment": {
-        "MYSQL_HOST": "数据库地址",
-        "MYSQL_PORT": "3306",
-        "MYSQL_USER": "数据库用户名",
-        "MYSQL_PASS": "数据库密码",
-        "MYSQL_DB": "数据库名",
-        "ALLOW_INSERT_OPERATION": "false",
-        "ALLOW_UPDATE_OPERATION": "false",
-        "ALLOW_DELETE_OPERATION": "false"
+    "servers": {
+      "playwright": {
+        "type": "remote",
+        "url": "http://playwright:8931/mcp"
       },
-      "enabled": true,
-      "timeout": {
-        "startup": 60000
+      "database": {
+        "type": "local",
+        "command": [
+          "npx",
+          "-y",
+          "@benborla29/mcp-server-mysql"
+        ],
+        "environment": {
+          "MYSQL_HOST": "数据库地址",
+          "MYSQL_PORT": "3306",
+          "MYSQL_USER": "数据库用户名",
+          "MYSQL_PASS": "数据库密码",
+          "MYSQL_DB": "数据库名",
+          "ALLOW_INSERT_OPERATION": "false",
+          "ALLOW_UPDATE_OPERATION": "false",
+          "ALLOW_DELETE_OPERATION": "false"
+        },
+        "timeout": {
+          "startup": 60000
+        }
       }
     }
   }

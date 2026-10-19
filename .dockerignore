@@ -1,12 +1,13 @@
-multica/
-.multica/
+.git
 multica-workspaces/
+.multica/
 opencode-config/
 opencode-data/
 playwright-output/
 ssh-keys/
 workspace/
 .env
+docker-compose.yml
 gitconfig
 *.log
 .DS_Store

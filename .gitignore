@@ -2,7 +2,6 @@
 docker-compose.yml
 gitconfig
 workspace/
-multica/
 .multica/
 multica-workspaces/
 opencode-config/

@@ -16,19 +16,7 @@ Dockerfile 使用多阶段构建：`tools` 阶段负责下载/安装 Node.js、u
 
 默认工作目录是 `/workspace`；使用 compose 时会挂载到 Docker named volume `workspace`，避免容器重建后丢失工作文件，同时不在宿主机目录下创建 `./workspace`。
 
-容器启动时会在检测到 `/root/.multica/config.json` 后执行：
-
-```bash
-multica daemon autostart enable
-```
-
-随后以前台模式启动 daemon，让 Docker 可以管理容器生命周期：
-
-```bash
-multica daemon start --foreground
-```
-
-如果还没有执行过 `multica setup`，容器会保持运行，方便你进入容器完成初始化。
+`entrypoint.sh` 在 daemon 未运行时启动它（并清理上次容器残留的 pid/lock），然后跟随 `/root/.multica/daemon.log` 保持容器存活，`docker logs` 可直接看到 daemon 输出。
 
 ## 镜像发布
 
@@ -64,7 +52,7 @@ docker build \
   --build-arg NODE_VERSION=24.21.0 \
   --build-arg UV_VERSION=latest \
   --build-arg MULTICA_VERSION=0.6.3 \
-  --build-arg OPENCODE_VERSION=latest \
+  --build-arg OPENCODE_VERSION=2.0.32 \
   --build-arg MYSQL_MCP_VERSION=2.0.9 \
   -t ghcr.io/i94m/multica-runtime:0.6.3 .
 ```
@@ -82,7 +70,7 @@ docker compose up -d
 进入容器 shell：
 
 ```bash
-docker exec -it multica-opencode-mysql-mcp bash
+docker compose exec developer bash
 ```
 
 确认内置工具：
@@ -107,16 +95,16 @@ mcp-server-mysql --help
 首次运行后配置 multica：
 
 ```bash
-docker exec -it multica-opencode-mysql-mcp multica setup self-host \
-  --server-url http://210.74.156.242:3456 \
-  --app-url    http://210.74.156.242:3456
+docker compose exec developer multica setup self-host \
+  --server-url <server-url> \
+  --app-url    <app-url>
 ```
 
-完成 setup 后重启容器，入口脚本会执行 `multica daemon autostart enable` 并启动 daemon：
+完成 setup 后重启容器，然后确认 daemon 状态：
 
 ```bash
-docker restart multica-opencode-mysql-mcp
-docker exec -it multica-opencode-mysql-mcp multica daemon status
+docker compose restart developer
+docker compose exec developer multica daemon status
 ```
 
 ## 配置 opencode 与 MySQL MCP
@@ -135,7 +123,7 @@ docker exec -it multica-opencode-mysql-mcp multica daemon status
 模型服务/API Key 仍建议通过 opencode 自己配置：
 
 ```bash
-docker exec -it multica-opencode-mysql-mcp opencode
+docker compose exec developer opencode
 ```
 
 MySQL MCP 示例配置在 `opencode.example.json`。如需使用：
@@ -157,31 +145,9 @@ cp opencode.example.json opencode-config/opencode.json
 ./playwright-output/
 ```
 
-该目录在 Playwright 容器内对应：
+该目录在 Playwright 容器内对应 `/root/playwright-output`；主容器把同一个宿主机目录只读挂载到相同路径，因此 opencode/Multica 可以读取但不能修改。
 
-```text
-/root/playwright-output
-```
-
-主容器会把同一个宿主机目录只读挂载到相同路径，因此 opencode/Multica 可以读取但不能修改：
-
-```text
-/root/playwright-output
-```
-
-Playwright 服务还会复用宿主机已安装的 Chromium：
-
-```text
-/root/.cache/ms-playwright/chromium-1208
-```
-
-该目录会以只读方式挂载到 Playwright 容器内：
-
-```text
-/host-chromium
-```
-
-并通过 `--executable-path /host-chromium/chrome-linux64/chrome` 指定浏览器可执行文件，避免 MCP 镜像内没有 msedge/chromium 时无法启动。
+Playwright 使用镜像自带的 Chromium，不依赖宿主机浏览器。`--no-sandbox`、`--allow-unrestricted-file-access`、`--allowed-hosts '*'` 是为容器内调试放宽的选项，仅建议在内网或本地使用。
 
 `./playwright-output/` 已加入 `.gitignore` / `.dockerignore`，不要提交到仓库。
 
@@ -214,21 +180,24 @@ cp gitconfig.example gitconfig
 
 这样即使 Multica 后台任务拿到的是 `https://gitee.com/owner/repo.git`，容器内 Git 也会自动按 `git@gitee.com:owner/repo.git` 走 SSH key，避免非交互环境下出现 `could not read Username for 'https://gitee.com'`。
 
-宿主机上确认权限：
+宿主机上确认权限，并生成 `known_hosts`：
 
 ```bash
 chmod 700 ssh-keys
 chmod 600 ssh-keys/id_ed25519
 chmod 644 ssh-keys/id_ed25519.pub ssh-keys/known_hosts
+ssh-keyscan github.com gitee.com >> ssh-keys/known_hosts
 ```
+
+> `known_hosts` 文件必须先存在。如果宿主机上没有该文件，Docker 会把它创建成同名目录，ssh 会直接报错。
 
 重启并测试 GitHub/Gitee SSH 连接：
 
 ```bash
 docker compose up -d
-docker exec -it multica-opencode-mysql-mcp ssh -T git@github.com
-docker exec -it multica-opencode-mysql-mcp ssh -T git@gitee.com
-docker exec -it multica-opencode-mysql-mcp git config --global --get-regexp '^url\.'
+docker compose exec developer ssh -T git@github.com
+docker compose exec developer ssh -T git@gitee.com
+docker compose exec developer git config --global --get-regexp '^url\.'
 ```
 
 之后在容器内使用 SSH 地址拉取代码，例如：
