@@ -18,9 +18,20 @@ enable_multica_autostart() {
   return 0
 }
 
+stop_existing_multica_daemon() {
+  # Runtime state is persisted across container recreates. If the previous
+  # container left daemon state behind, `multica daemon start --foreground` may
+  # fail with "already running or starting" and Docker will restart-loop. Stop is
+  # intentionally best-effort: a clean first boot usually has nothing to stop.
+  echo "[entrypoint] stopping any existing multica daemon state"
+  (cd / && multica daemon stop) || \
+    echo "[entrypoint] no existing multica daemon stopped; continuing"
+}
+
 case "${1:-daemon}" in
   daemon)
     if enable_multica_autostart; then
+      stop_existing_multica_daemon
       echo "[entrypoint] starting multica daemon in foreground"
       cd /
       exec multica daemon start --foreground

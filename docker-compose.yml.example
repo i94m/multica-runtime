@@ -1,28 +1,58 @@
 services:
-  multica:
+  developer:
     image: ${IMAGE_NAME:-ghcr.io/i94m/multica-runtime}:${MULTICA_VERSION:-0.6.3}
     working_dir: /workspace
     stdin_open: true
     tty: true
+    depends_on:
+      playwright:
+        condition: service_started
+    environment:
+      MULTICA_DAEMON_DEVICE_NAME: "Developer's Runtime on Workstation Container"
     volumes:
       # Persistent runtime state. Do not commit these folders.
-      - ./workspace:/workspace
-      - ./multica:/root/.multica
+      - ./playwright-output:/root/playwright-output:ro
+      - ./.multica:/root/.multica
       - ./multica-workspaces:/root/multica_workspaces
       - ./opencode-config:/root/.config/opencode
       - ./opencode-data:/root/.local/share/opencode
-      # Optional: mount a dedicated read-only SSH key for git access.
-      # Uncomment and adjust the key path if needed; do not bake SSH keys into the image.
-      # - ~/.ssh/id_ed25519:/root/.ssh/id_ed25519:ro
-      # - ~/.ssh/id_ed25519.pub:/root/.ssh/id_ed25519.pub:ro
-      # - ~/.ssh/known_hosts:/root/.ssh/known_hosts:ro
+      # Optional: mount a dedicated read-only SSH key and Git URL rewrite config.
+      # This lets background git clone/fetch jobs use SSH even when repository URLs are HTTPS.
+      # Copy gitconfig.example to gitconfig before enabling the gitconfig mount.
+      # - ./ssh-keys/id_ed25519:/root/.ssh/id_ed25519:ro
+      # - ./ssh-keys/id_ed25519.pub:/root/.ssh/id_ed25519.pub:ro
+      # - ./ssh-keys/known_hosts:/root/.ssh/known_hosts:ro
+      # - ./gitconfig:/root/.gitconfig:ro
     restart: unless-stopped
-    networks:
-      - multica_net
 
-networks:
-  multica_net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: ${MULTICA_DOCKER_SUBNET:-172.31.250.0/24}
+  playwright:
+    image: mcr.microsoft.com/playwright/mcp:latest
+    init: true
+    entrypoint: ["node", "/app/cli.js"]
+    command:
+      - "--headless"
+      - "--browser"
+      - "chromium"
+      - "--executable-path"
+      - "/host-chromium/chrome-linux64/chrome"
+      - "--no-sandbox"
+      - "--allow-unrestricted-file-access"
+      - "--output-dir"
+      - "/root/playwright-output"
+      - "--port"
+      - "8931"
+      - "--host"
+      - "0.0.0.0"
+      - "--allowed-hosts"
+      - "*"
+    expose:
+      - "8931"
+    environment:
+      NODE_ENV: production
+      PLAYWRIGHT_MCP_OUTPUT_DIR: /root/playwright-output
+    volumes:
+      # Reuse host-installed Playwright Chromium so the MCP image does not need msedge.
+      - /root/.cache/ms-playwright/chromium-1208:/host-chromium:ro
+      # Shared output directory; container path must match --output-dir.
+      - ./playwright-output:/root/playwright-output
+    restart: unless-stopped

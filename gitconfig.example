@@ -1,0 +1,5 @@
+[url "git@gitee.com:"]
+    insteadOf = https://gitee.com/
+
+[url "git@github.com:"]
+    insteadOf = https://github.com/

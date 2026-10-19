@@ -14,7 +14,7 @@ Dockerfile 使用多阶段构建：`tools` 阶段负责下载/安装 Node.js、u
 - MySQL MCP：`@benborla29/mcp-server-mysql`
 - 常用排障/轻量开发工具：`rg`、`jq`、`git`、`ssh`、`curl`、`wget`、`openssl`、`ping`、`nslookup`、`nc`、`rsync`、`vim-tiny`
 
-默认工作目录是 `/workspace`；使用 compose 时会挂载到宿主机 `./workspace`，避免容器重建后丢失工作文件。
+默认工作目录是 `/workspace`；使用 compose 时会挂载到 Docker named volume `workspace`，避免容器重建后丢失工作文件，同时不在宿主机目录下创建 `./workspace`。
 
 容器启动时会在检测到 `/root/.multica/config.json` 后执行：
 
@@ -121,6 +121,17 @@ docker exec -it multica-opencode-mysql-mcp multica daemon status
 
 ## 配置 opencode 与 MySQL MCP
 
+`docker-compose.yml.example` 已经把 opencode 的配置和运行数据挂载到宿主机目录：
+
+```yaml
+- ./opencode-config:/root/.config/opencode
+- ./opencode-data:/root/.local/share/opencode
+```
+
+因此通过 `opencode` 写入的模型服务、API Key、MCP 配置、本地状态等会持久化在 `./opencode-config` 和 `./opencode-data` 中。升级镜像、重建容器或重新 `docker compose up -d` 时，只要不删除这两个目录，opencode 配置就会保留。
+
+如果你已经从旧版示例复制过 `docker-compose.yml`，请确认自己的文件中也包含上面两条挂载配置。
+
 模型服务/API Key 仍建议通过 opencode 自己配置：
 
 ```bash
@@ -136,29 +147,93 @@ cp opencode.example.json opencode-config/opencode.json
 
 然后编辑 `opencode-config/opencode.json` 中的 `MYSQL_HOST`、`MYSQL_USER`、`MYSQL_PASS`、`MYSQL_DB` 等连接参数。
 
-> `opencode-config/opencode.json` 可能包含密钥，不要提交到仓库。
+> `opencode-config/` 和 `opencode-data/` 可能包含密钥、登录状态或其它敏感信息，不要提交到仓库。
+
+## Playwright MCP 输出目录
+
+`docker-compose.yml.example` 中的 Playwright MCP 服务会把截图、trace 等输出写入宿主机目录：
+
+```text
+./playwright-output/
+```
+
+该目录在 Playwright 容器内对应：
+
+```text
+/root/playwright-output
+```
+
+主容器会把同一个宿主机目录只读挂载到相同路径，因此 opencode/Multica 可以读取但不能修改：
+
+```text
+/root/playwright-output
+```
+
+Playwright 服务还会复用宿主机已安装的 Chromium：
+
+```text
+/root/.cache/ms-playwright/chromium-1208
+```
+
+该目录会以只读方式挂载到 Playwright 容器内：
+
+```text
+/host-chromium
+```
+
+并通过 `--executable-path /host-chromium/chrome-linux64/chrome` 指定浏览器可执行文件，避免 MCP 镜像内没有 msedge/chromium 时无法启动。
+
+`./playwright-output/` 已加入 `.gitignore` / `.dockerignore`，不要提交到仓库。
 
 ## 在容器中使用 SSH 拉取 Git 仓库
 
-推荐挂载指定 SSH 密钥，而不是把私钥写进镜像。编辑 `docker-compose.yml`，取消注释并按需调整：
+推荐挂载项目内单独生成的 SSH 密钥，而不是把私钥写进镜像，也不需要复用宿主机 `~/.ssh`。先把公钥分别添加到 GitHub/Gitee，然后编辑 `docker-compose.yml`，取消注释并按需调整：
 
 ```yaml
-      - ~/.ssh/id_ed25519:/root/.ssh/id_ed25519:ro
-      - ~/.ssh/id_ed25519.pub:/root/.ssh/id_ed25519.pub:ro
-      - ~/.ssh/known_hosts:/root/.ssh/known_hosts:ro
+      - ./ssh-keys/id_ed25519:/root/.ssh/id_ed25519:ro
+      - ./ssh-keys/id_ed25519.pub:/root/.ssh/id_ed25519.pub:ro
+      - ./ssh-keys/known_hosts:/root/.ssh/known_hosts:ro
+      - ./gitconfig:/root/.gitconfig:ro
 ```
+
+`gitconfig.example` 会把 HTTPS 仓库地址自动改写为 SSH 地址：
+
+```ini
+[url "git@gitee.com:"]
+    insteadOf = https://gitee.com/
+
+[url "git@github.com:"]
+    insteadOf = https://github.com/
+```
+
+首次使用时复制一份本地配置：
+
+```bash
+cp gitconfig.example gitconfig
+```
+
+这样即使 Multica 后台任务拿到的是 `https://gitee.com/owner/repo.git`，容器内 Git 也会自动按 `git@gitee.com:owner/repo.git` 走 SSH key，避免非交互环境下出现 `could not read Username for 'https://gitee.com'`。
 
 宿主机上确认权限：
 
 ```bash
-chmod 700 ~/.ssh
-chmod 600 ~/.ssh/id_ed25519
-chmod 644 ~/.ssh/id_ed25519.pub ~/.ssh/known_hosts
+chmod 700 ssh-keys
+chmod 600 ssh-keys/id_ed25519
+chmod 644 ssh-keys/id_ed25519.pub ssh-keys/known_hosts
 ```
 
-重启并测试：
+重启并测试 GitHub/Gitee SSH 连接：
 
 ```bash
 docker compose up -d
 docker exec -it multica-opencode-mysql-mcp ssh -T git@github.com
+docker exec -it multica-opencode-mysql-mcp ssh -T git@gitee.com
+docker exec -it multica-opencode-mysql-mcp git config --global --get-regexp '^url\.'
+```
+
+之后在容器内使用 SSH 地址拉取代码，例如：
+
+```bash
+git clone git@github.com:owner/repo.git
+git clone git@gitee.com:owner/repo.git
 ```

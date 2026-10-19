@@ -1,8 +1,12 @@
 multica/
+.multica/
 multica-workspaces/
 opencode-config/
 opencode-data/
+playwright-output/
+ssh-keys/
 workspace/
 .env
+gitconfig
 *.log
 .DS_Store

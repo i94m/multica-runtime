@@ -1,9 +1,13 @@
 .env
 docker-compose.yml
+gitconfig
 workspace/
 multica/
+.multica/
 multica-workspaces/
 opencode-config/
 opencode-data/
+playwright-output/
+ssh-keys/
 *.log
 .DS_Store
