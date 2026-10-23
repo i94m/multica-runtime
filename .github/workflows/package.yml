@@ -11,7 +11,7 @@ on:
       multica_version:
         description: Multica CLI version and image tag
         required: false
-        default: "0.6.5"
+        default: "0.7.0"
 
 permissions:
   contents: read
