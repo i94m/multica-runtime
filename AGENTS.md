@@ -24,7 +24,7 @@
 
 ## Dockerfile maintenance
 - Dockerfile is multi-stage: `tools` downloads/installs Node, uv, opencode, multica, and MySQL MCP; `runtime` installs OS runtime packages and copies `/usr/local` from `tools`.
-- Version pins are Docker build args near the top of `Dockerfile`: base image `docker.m.daocloud.io/library/debian:13-slim`, Node `24.21.0`, uv `0.13.5`, Multica `0.7.0`, OpenCode `2.1.3`, MySQL MCP `2.0.9`.
+- Version pins are Docker build args near the top of `Dockerfile`: base image `docker.m.daocloud.io/library/debian:13-slim`, Node `24.21.0`, uv `0.13.5`, Multica `0.7.0`, OpenCode `2.1.4`, MySQL MCP `2.0.9`.
 - The image supports `linux/amd64` and `linux/arm64`; buildx passes `TARGETARCH` and the Dockerfile maps it for Node, OpenCode, and Multica.
 - Node is installed from upstream tarballs, npm is included, and `corepack enable` is run so pnpm/yarn shims are available.
 - System Python is installed from Debian packages: `python-is-python3`, `python3`, `python3-pip`, and `python3-venv`.

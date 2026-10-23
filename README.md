@@ -52,7 +52,7 @@ docker build \
   --build-arg NODE_VERSION=24.21.0 \
   --build-arg UV_VERSION=0.13.5 \
   --build-arg MULTICA_VERSION=0.7.0 \
-  --build-arg OPENCODE_VERSION=2.1.3 \
+  --build-arg OPENCODE_VERSION=2.1.4 \
   --build-arg MYSQL_MCP_VERSION=2.0.9 \
   -t ghcr.io/i94m/multica-runtime:0.7.0 .
 ```
