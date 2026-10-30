@@ -70,7 +70,7 @@ docker compose up -d
 进入容器 shell：
 
 ```bash
-docker compose exec developer bash
+docker compose exec multica bash
 ```
 
 确认内置工具：
@@ -95,7 +95,7 @@ mcp-server-mysql --help
 首次运行后配置 multica：
 
 ```bash
-docker compose exec developer multica setup self-host \
+docker compose exec multica multica setup self-host \
   --server-url <server-url> \
   --app-url    <app-url>
 ```
@@ -103,8 +103,8 @@ docker compose exec developer multica setup self-host \
 完成 setup 后重启容器，然后确认 daemon 状态：
 
 ```bash
-docker compose restart developer
-docker compose exec developer multica daemon status
+docker compose restart multica
+docker compose exec multica multica daemon status
 ```
 
 ## 配置 opencode 与 MySQL MCP
@@ -123,7 +123,7 @@ docker compose exec developer multica daemon status
 模型服务/API Key 仍建议通过 opencode 自己配置：
 
 ```bash
-docker compose exec developer opencode
+docker compose exec multica opencode
 ```
 
 MySQL MCP 示例配置在 `opencode.example.json`。如需使用：
@@ -195,9 +195,9 @@ ssh-keyscan github.com gitee.com >> ssh-keys/known_hosts
 
 ```bash
 docker compose up -d
-docker compose exec developer ssh -T git@github.com
-docker compose exec developer ssh -T git@gitee.com
-docker compose exec developer git config --global --get-regexp '^url\.'
+docker compose exec multica ssh -T git@github.com
+docker compose exec multica ssh -T git@gitee.com
+docker compose exec multica git config --global --get-regexp '^url\.'
 ```
 
 之后在容器内使用 SSH 地址拉取代码，例如：

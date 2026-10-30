@@ -10,9 +10,9 @@
 - For Dockerfile debugging only, local builds can use `docker build --build-arg BASE_IMAGE=docker.m.daocloud.io/library/debian:13-slim -t ghcr.io/i94m/multica-runtime:dev .`.
 - Base image and tool versions can be overridden with build args: `BASE_IMAGE`, `NODE_VERSION`, `UV_VERSION`, `MULTICA_VERSION`, `OPENCODE_VERSION`, `MYSQL_MCP_VERSION`.
 - After first start, run Multica setup in the container, then restart the service and check daemon status:
-  - `docker compose exec developer multica setup self-host --server-url <url> --app-url <url>`
-  - `docker compose restart developer`
-  - `docker compose exec developer multica daemon status`
+  - `docker compose exec multica multica setup self-host --server-url <url> --app-url <url>`
+  - `docker compose restart multica`
+  - `docker compose exec multica multica daemon status`
 - There is no in-repo test/lint/typecheck config; `docker build --check .` and `docker compose --env-file .env.example -f docker-compose.yml.example config` are the practical config checks.
 
 ## Runtime behavior and gotchas
