@@ -30,7 +30,7 @@ ghcr.io/i94m/multica-runtime:latest
 触发方式：
 
 - push 到 `main`：使用 `Dockerfile` 中的 `ARG MULTICA_VERSION` 作为版本标签
-- push tag `v*`，例如 `v0.7.0`：使用 tag 去掉 `v` 后的版本号
+- push tag `v*`，例如 `v0.7.2`：使用 tag 去掉 `v` 后的版本号
 - 手动运行 workflow：可输入 `multica_version`
 
 workflow 文件：`.github/workflows/package.yml`。
@@ -38,7 +38,7 @@ workflow 文件：`.github/workflows/package.yml`。
 检查远端镜像架构：
 
 ```bash
-MULTICA_VERSION=0.7.0
+MULTICA_VERSION=0.7.2
 docker buildx imagetools inspect ghcr.io/i94m/multica-runtime:${MULTICA_VERSION}
 ```
 
@@ -50,11 +50,11 @@ docker buildx imagetools inspect ghcr.io/i94m/multica-runtime:${MULTICA_VERSION}
 docker build \
   --build-arg BASE_IMAGE=docker.m.daocloud.io/library/debian:13-slim \
   --build-arg NODE_VERSION=24.21.0 \
-  --build-arg UV_VERSION=0.13.5 \
-  --build-arg MULTICA_VERSION=0.7.0 \
-  --build-arg OPENCODE_VERSION=2.1.4 \
+  --build-arg UV_VERSION=0.13.6 \
+  --build-arg MULTICA_VERSION=0.7.2 \
+  --build-arg OPENCODE_VERSION=2.2.2 \
   --build-arg MYSQL_MCP_VERSION=2.0.9 \
-  -t ghcr.io/i94m/multica-runtime:0.7.0 .
+  -t ghcr.io/i94m/multica-runtime:0.7.2 .
 ```
 
 ## 运行
@@ -62,7 +62,7 @@ docker build \
 ```bash
 cp docker-compose.yml.example docker-compose.yml
 cp .env.example .env
-export MULTICA_VERSION=0.7.0
+export MULTICA_VERSION=0.7.2
 docker compose pull
 docker compose up -d
 ```

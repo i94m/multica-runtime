@@ -6,7 +6,7 @@
 
 ## Build and run
 - Releases are built by GitHub Actions in `.github/workflows/package.yml`, not by local packaging. It publishes `linux/amd64` and `linux/arm64` images to `ghcr.io/i94m/multica-runtime`.
-- Local compose defaults to pulling `ghcr.io/i94m/multica-runtime:${MULTICA_VERSION:-0.7.0}`; run `cp .env.example .env`, `cp docker-compose.yml.example docker-compose.yml`, then `docker compose pull && docker compose up -d`.
+- Local compose defaults to pulling `ghcr.io/i94m/multica-runtime:${MULTICA_VERSION:-0.7.2}`; run `cp .env.example .env`, `cp docker-compose.yml.example docker-compose.yml`, then `docker compose pull && docker compose up -d`.
 - For Dockerfile debugging only, local builds can use `docker build --build-arg BASE_IMAGE=docker.m.daocloud.io/library/debian:13-slim -t ghcr.io/i94m/multica-runtime:dev .`.
 - Base image and tool versions can be overridden with build args: `BASE_IMAGE`, `NODE_VERSION`, `UV_VERSION`, `MULTICA_VERSION`, `OPENCODE_VERSION`, `MYSQL_MCP_VERSION`.
 - After first start, run Multica setup in the container, then restart the service and check daemon status:
@@ -24,7 +24,7 @@
 
 ## Dockerfile maintenance
 - Dockerfile is multi-stage: `tools` downloads/installs Node, uv, opencode, multica, and MySQL MCP; `runtime` installs OS runtime packages and copies `/usr/local` from `tools`.
-- Version pins are Docker build args near the top of `Dockerfile`: base image `docker.m.daocloud.io/library/debian:13-slim`, Node `24.21.0`, uv `0.13.5`, Multica `0.7.0`, OpenCode `2.1.4`, MySQL MCP `2.0.9`.
+- Version pins are Docker build args near the top of `Dockerfile`: base image `docker.m.daocloud.io/library/debian:13-slim`, Node `24.21.0`, uv `0.13.6`, Multica `0.7.2`, OpenCode `2.2.2`, MySQL MCP `2.0.9`.
 - The image supports `linux/amd64` and `linux/arm64`; buildx passes `TARGETARCH` and the Dockerfile maps it for Node, OpenCode, and Multica.
 - Node is installed from upstream tarballs, npm is included, and `corepack enable` is run so pnpm/yarn shims are available.
 - System Python is installed from Debian packages: `python-is-python3`, `python3`, `python3-pip`, and `python3-venv`.
